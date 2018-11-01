@@ -12,32 +12,28 @@ import org.apache.hadoop.util.Progressable;
 import java.io.IOException;
 import java.util.Properties;
 
-public class CkOutputFormat<V> implements HiveOutputFormat<CkWritable, V>
-{
-  @Override
-  public FileSinkOperator.RecordWriter getHiveRecordWriter(
-      JobConf jobConf,
-      Path path,
-      Class<? extends Writable> aClass,
-      boolean b,
-      Properties properties,
-      Progressable progressable
-  ) throws IOException
-  {
-    return null;
-  }
+public class CkOutputFormat<V> implements HiveOutputFormat<CkWritable, V> {
+    @Override
+    public FileSinkOperator.RecordWriter getHiveRecordWriter(
+            JobConf jobConf,
+            Path path,
+            Class<? extends Writable> aClass,
+            boolean b,
+            Properties properties,
+            Progressable progressable
+    ) throws IOException {
+        return null;
+    }
 
-  @Override
-  public RecordWriter<CkWritable, V> getRecordWriter(
-      FileSystem fileSystem, JobConf jobConf, String s, Progressable progressable
-  ) throws IOException
-  {
-    return null;
-  }
+    @Override
+    public RecordWriter<CkWritable, V> getRecordWriter(
+            FileSystem fileSystem, JobConf jobConf, String s, Progressable progressable
+    ) throws IOException {
+        return null;
+    }
 
-  @Override
-  public void checkOutputSpecs(FileSystem fileSystem, JobConf jobConf) throws IOException
-  {
+    @Override
+    public void checkOutputSpecs(FileSystem fileSystem, JobConf jobConf) throws IOException {
 
-  }
+    }
 }
