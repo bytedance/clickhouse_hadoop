@@ -2,6 +2,8 @@ package data.bytedance.net.ck.hive;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.HiveMetaHook;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
@@ -33,7 +35,7 @@ public class CkStorageHandler implements HiveStorageHandler
   @Override
   public HiveMetaHook getMetaHook()
   {
-    return null;
+    return new CkHook();
   }
 
   @Override
@@ -79,4 +81,49 @@ public class CkStorageHandler implements HiveStorageHandler
   {
     return null;
   }
+
+  /**
+   * Dummy implementation, do nothing
+   */
+  private static class CkHook implements HiveMetaHook
+  {
+    @Override
+    public void preCreateTable(Table table) throws MetaException
+    {
+
+    }
+
+    @Override
+    public void rollbackCreateTable(Table table) throws MetaException
+    {
+
+    }
+
+    @Override
+    public void commitCreateTable(Table table) throws MetaException
+    {
+
+    }
+
+    @Override
+    public void preDropTable(Table table) throws MetaException
+    {
+
+    }
+
+    @Override
+    public void rollbackDropTable(Table table) throws MetaException
+    {
+
+    }
+
+    @Override
+    public void commitDropTable(Table table, boolean b) throws MetaException
+    {
+
+    }
+  }
+
+
 }
+
