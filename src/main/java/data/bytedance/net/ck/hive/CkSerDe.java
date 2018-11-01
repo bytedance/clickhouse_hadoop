@@ -10,6 +10,7 @@ import org.apache.hadoop.io.Writable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -54,13 +55,17 @@ public class CkSerDe implements SerDe {
         String columnTypeProperty = tblProps.getProperty(Constants.LIST_COLUMN_TYPES);
 
         // if columns and column types are not explicitly defined, we need to find them out.
-        if ((columnTypeProperty != null || columnTypeProperty != "") &&
-                (columnNameProperty != null || columnNameProperty != "")) {
-            columnNames = Arrays.asList(columnNameProperty.split(","));
-            columnTypes = Arrays.asList(columnTypeProperty.split(","));
-            ckHelper = new CkHelper(connStr, tblName, columnNames, columnTypes);
-        } else {
-            ckHelper = new CkHelper(connStr, tblName);
+        try {
+            if ((columnTypeProperty != null || columnTypeProperty != "") &&
+                    (columnNameProperty != null || columnNameProperty != "")) {
+                columnNames = Arrays.asList(columnNameProperty.split(","));
+                columnTypes = Arrays.asList(columnTypeProperty.split(","));
+                ckHelper = new CkHelper(connStr, tblName, columnNames, columnTypes);
+            } else {
+                ckHelper = new CkHelper(connStr, tblName);
+            }
+        } catch (SQLException e) {
+            throw new SerDeException(e.getCause());
         }
     }
 
