@@ -23,7 +23,7 @@ public class ClickHouseSerDe implements SerDe {
 
 
     /**
-     * Set up the tlbProps
+     * Set up the tlbProps of the destination
      * - columns
      * - column.types
      *
@@ -39,6 +39,7 @@ public class ClickHouseSerDe implements SerDe {
         String connStr = tblProps.getProperty(Constants.CK_CONN_STR);
         String tblName = tblProps.getProperty(Constants.CK_TBL_NAME);
 
+        // Table name and connection string are required
         if (connStr == null || connStr == "") {
             throw new SerDeException(Constants.CK_CONN_STR + " must be set in TBLPROPERTIES");
         }
@@ -71,7 +72,7 @@ public class ClickHouseSerDe implements SerDe {
 
     @Override
     public Class<? extends Writable> getSerializedClass() {
-        return null;
+        return ClickHouseWritable.class;
     }
 
     /**

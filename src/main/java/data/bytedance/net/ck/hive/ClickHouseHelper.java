@@ -38,14 +38,14 @@ public class ClickHouseHelper {
         this.columnTypes = columnTypes;
     }
 
-    public Connection getCkConnection() throws SQLException {
+    public Connection getClickHouseConnection() throws SQLException {
         Connection connection = DriverManager.getConnection(getConnStr());
         return connection;
     }
 
 
     public void initColumnNamesAndTypesFromSystemQuery() throws SQLException {
-        Connection conn = getCkConnection();
+        Connection conn = getClickHouseConnection();
         try {
             Statement stmt = conn.createStatement();
             String query = "SELECT name, type from system.columns where table = '" + getTableName() + "';";
