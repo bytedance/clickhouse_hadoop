@@ -15,11 +15,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-public class CkSerDe implements SerDe {
+public class ClickHouseSerDe implements SerDe {
     private int columnCount;
     private StructObjectInspector objectInspector;
-    private static final Logger logger = LoggerFactory.getLogger(CkSerDe.class);
-    private CkHelper ckHelper;
+    private static final Logger logger = LoggerFactory.getLogger(ClickHouseSerDe.class);
+    private ClickHouseHelper clickHouseHelper;
 
 
     /**
@@ -60,9 +60,9 @@ public class CkSerDe implements SerDe {
                     (columnNameProperty != null || columnNameProperty != "")) {
                 columnNames = Arrays.asList(columnNameProperty.split(","));
                 columnTypes = Arrays.asList(columnTypeProperty.split(","));
-                ckHelper = new CkHelper(connStr, tblName, columnNames, columnTypes);
+                clickHouseHelper = new ClickHouseHelper(connStr, tblName, columnNames, columnTypes);
             } else {
-                ckHelper = new CkHelper(connStr, tblName);
+                clickHouseHelper = new ClickHouseHelper(connStr, tblName);
             }
         } catch (SQLException e) {
             throw new SerDeException(e.getCause());

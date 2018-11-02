@@ -12,7 +12,7 @@ import org.apache.hadoop.hive.serde2.SerDe;
 
 import java.util.Map;
 
-public class CkStorageHandler implements HiveStorageHandler {
+public class ClickHouseStorageHandler implements HiveStorageHandler {
     @Override
     public Class<? extends org.apache.hadoop.mapred.InputFormat> getInputFormatClass() {
         return null;
@@ -25,7 +25,7 @@ public class CkStorageHandler implements HiveStorageHandler {
 
     @Override
     public Class<? extends SerDe> getSerDeClass() {
-        return CkSerDe.class;
+        return ClickHouseSerDe.class;
     }
 
     @Override

@@ -7,8 +7,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CkHelper {
-    private static final Logger logger = LoggerFactory.getLogger(CkHelper.class);
+public class ClickHouseHelper {
+    private static final Logger logger = LoggerFactory.getLogger(ClickHouseHelper.class);
     private final String connStr;
     private final String tableName;
     private List<String> columnNames;
@@ -23,15 +23,15 @@ public class CkHelper {
     }
 
 
-    public CkHelper(String connStr, String tableName) throws SQLException {
+    public ClickHouseHelper(String connStr, String tableName) throws SQLException {
         this.connStr = connStr;
         this.tableName = tableName;
         this.columnNames = new ArrayList<>();
         this.columnTypes = new ArrayList<>();
-        initColumnNamesAndTypesFromCk();
+        initColumnNamesAndTypesFromSystemQuery();
     }
 
-    public CkHelper(String connStr, String tableName, List<String> columnNames, List<String> columnTypes) {
+    public ClickHouseHelper(String connStr, String tableName, List<String> columnNames, List<String> columnTypes) {
         this.connStr = connStr;
         this.tableName = tableName;
         this.columnNames = columnNames;
@@ -44,7 +44,7 @@ public class CkHelper {
     }
 
 
-    public void initColumnNamesAndTypesFromCk() throws SQLException {
+    public void initColumnNamesAndTypesFromSystemQuery() throws SQLException {
         Connection conn = getCkConnection();
         try {
             Statement stmt = conn.createStatement();

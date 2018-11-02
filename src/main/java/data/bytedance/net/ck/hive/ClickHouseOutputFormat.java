@@ -12,7 +12,7 @@ import org.apache.hadoop.util.Progressable;
 import java.io.IOException;
 import java.util.Properties;
 
-public class CkOutputFormat<V> implements HiveOutputFormat<CkWritable, V> {
+public class ClickHouseOutputFormat<V> implements HiveOutputFormat<ClickHouseWritable, V> {
     @Override
     public FileSinkOperator.RecordWriter getHiveRecordWriter(
             JobConf jobConf,
@@ -26,7 +26,7 @@ public class CkOutputFormat<V> implements HiveOutputFormat<CkWritable, V> {
     }
 
     @Override
-    public RecordWriter<CkWritable, V> getRecordWriter(
+    public RecordWriter<ClickHouseWritable, V> getRecordWriter(
             FileSystem fileSystem, JobConf jobConf, String s, Progressable progressable
     ) throws IOException {
         return null;
