@@ -1,18 +1,22 @@
 package data.bytedance.net.ck.hive;
 
+import data.bytedance.net.utils.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class ClickHouseHelper {
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseHelper.class);
+    private static HashMap<Tuple<String, String>, ClickHouseHelper> ckHelperCache = new HashMap<>();
     private final String connStr;
     private final String tableName;
-    private List<String> columnNames;
-    private List<String> columnTypes;
+    private List<String> columnNames = new ArrayList<>();
+    private List<String> columnTypes = new ArrayList<>();
+    private HashMap<String, String> nameTypeMap = new HashMap<>();
 
     static {
         try {
@@ -22,20 +26,22 @@ public class ClickHouseHelper {
         }
     }
 
-
-    public ClickHouseHelper(String connStr, String tableName) throws SQLException {
-        this.connStr = connStr;
-        this.tableName = tableName;
-        this.columnNames = new ArrayList<>();
-        this.columnTypes = new ArrayList<>();
-        initColumnNamesAndTypesFromSystemQuery();
+    public static ClickHouseHelper getClickHouseHelper(String connStr, String tableName) throws SQLException {
+        Tuple<String, String> k = new Tuple<>(connStr, tableName);
+        if (ckHelperCache.containsKey(k)) {
+            return ckHelperCache.get(k);
+        } else {
+            ClickHouseHelper helper = new ClickHouseHelper(connStr, tableName);
+            ckHelperCache.put(k, helper);
+            return helper;
+        }
     }
 
-    public ClickHouseHelper(String connStr, String tableName, List<String> columnNames, List<String> columnTypes) {
+
+    private ClickHouseHelper(String connStr, String tableName) throws SQLException {
         this.connStr = connStr;
         this.tableName = tableName;
-        this.columnNames = columnNames;
-        this.columnTypes = columnTypes;
+        initColumnNamesAndTypesFromSystemQuery();
     }
 
     public Connection getClickHouseConnection() throws SQLException {
@@ -54,10 +60,15 @@ public class ClickHouseHelper {
             while (rs.next()) {
                 this.columnNames.add(rs.getString(1));
                 this.columnTypes.add(rs.getString(2));
+                nameTypeMap.put(rs.getString(1), rs.getString(2));
             }
         } finally {
             conn.close();
         }
+    }
+
+    public HashMap<String, String> getNameTypeMap() {
+        return nameTypeMap;
     }
 
     public String getConnStr() {

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -19,7 +20,8 @@ public class ClickHouseSerDe implements SerDe {
     private int columnCount;
     private StructObjectInspector objectInspector;
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseSerDe.class);
-    private ClickHouseHelper clickHouseHelper;
+    private List<String> columnNames;
+    private List<String> columnTypes;
 
 
     /**
@@ -49,24 +51,20 @@ public class ClickHouseSerDe implements SerDe {
         }
 
 
-        List<String> columnNames;
-        List<String> columnTypes;
-
         String columnNameProperty = tblProps.getProperty(Constants.LIST_COLUMNS);
-        String columnTypeProperty = tblProps.getProperty(Constants.LIST_COLUMN_TYPES);
-
-        // if columns and column types are not explicitly defined, we need to find them out.
+        ClickHouseHelper helper;
         try {
-            if ((columnTypeProperty != null || columnTypeProperty != "") &&
-                    (columnNameProperty != null || columnNameProperty != "")) {
-                columnNames = Arrays.asList(columnNameProperty.split(","));
-                columnTypes = Arrays.asList(columnTypeProperty.split(","));
-                clickHouseHelper = new ClickHouseHelper(connStr, tblName, columnNames, columnTypes);
-            } else {
-                clickHouseHelper = new ClickHouseHelper(connStr, tblName);
-            }
+            helper = ClickHouseHelper.getClickHouseHelper(connStr, tblName);
         } catch (SQLException e) {
             throw new SerDeException(e.getCause());
+        }
+
+        // if columns and column types are not explicitly defined, we need to find them out.
+        if (columnNameProperty != null || columnNameProperty != "") {
+            columnNames = Arrays.asList(columnNameProperty.split(","));
+        } else {
+            columnNames = helper.getColumnNames();
+            columnTypes = helper.getColumnTypes();
         }
     }
 
