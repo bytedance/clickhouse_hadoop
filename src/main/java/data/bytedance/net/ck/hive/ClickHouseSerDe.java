@@ -1,27 +1,27 @@
 package data.bytedance.net.ck.hive;
 
+import data.bytedance.net.utils.Tuple;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.serde2.AbstractSerDe;
 import org.apache.hadoop.hive.serde2.SerDe;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeStats;
+import org.apache.hadoop.hive.serde2.dynamic_type.DynamicSerDeDefinition;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.io.Writable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
-public class ClickHouseSerDe implements SerDe {
-    private int columnCount;
-    private StructObjectInspector objectInspector;
+public class ClickHouseSerDe extends AbstractSerDe {
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseSerDe.class);
+
+    // The column and type mapping
     private List<String> columnNames;
-    private List<String> columnTypes;
 
 
     /**
@@ -38,12 +38,13 @@ public class ClickHouseSerDe implements SerDe {
         if (logger.isDebugEnabled()) {
             logger.debug("tblProps" + tblProps);
         }
-        String connStr = tblProps.getProperty(Constants.CK_CONN_STR);
+        // a list of connection strings separated by comma, for load balancing
+        String connStrings = tblProps.getProperty(Constants.CK_CONN_STRS);
         String tblName = tblProps.getProperty(Constants.CK_TBL_NAME);
 
         // Table name and connection string are required
-        if (connStr == null || connStr == "") {
-            throw new SerDeException(Constants.CK_CONN_STR + " must be set in TBLPROPERTIES");
+        if (connStrings == null || connStrings == "") {
+            throw new SerDeException(Constants.CK_CONN_STRS + " must be set in TBLPROPERTIES");
         }
 
         if (tblName == null || tblName == "") {
@@ -52,19 +53,18 @@ public class ClickHouseSerDe implements SerDe {
 
 
         String columnNameProperty = tblProps.getProperty(Constants.LIST_COLUMNS);
-        ClickHouseHelper helper;
-        try {
-            helper = ClickHouseHelper.getClickHouseHelper(connStr, tblName);
-        } catch (SQLException e) {
-            throw new SerDeException(e.getCause());
-        }
 
         // if columns and column types are not explicitly defined, we need to find them out.
         if (columnNameProperty != null || columnNameProperty != "") {
             columnNames = Arrays.asList(columnNameProperty.split(","));
         } else {
+            ClickHouseHelper helper;
+            try {
+                helper = ClickHouseHelper.getClickHouseHelper(connStrings, tblName);
+            } catch (SQLException e) {
+                throw new SerDeException(e.getCause());
+            }
             columnNames = helper.getColumnNames();
-            columnTypes = helper.getColumnTypes();
         }
     }
 
@@ -84,7 +84,19 @@ public class ClickHouseSerDe implements SerDe {
      */
     @Override
     public Writable serialize(Object o, ObjectInspector objectInspector) throws SerDeException {
-        return null;
+        if (objectInspector.getCategory() != ObjectInspector.Category.STRUCT) {
+            throw new SerDeException(
+                    getClass().toString() + " can only serialize struct types, but we got: " + objectInspector.getTypeName());
+        }
+
+        StructObjectInspector soi = (StructObjectInspector) objectInspector;
+        HashMap<String, Tuple<? extends StructField, Object>> value = new HashMap<>();
+        for (String columnName : columnNames) {
+            StructField ref = soi.getStructFieldRef(columnName);
+            Object data = soi.getStructFieldData(o, ref);
+            value.put(columnName, new Tuple<>(ref, data));
+        }
+        return new ClickHouseWritable(value);
     }
 
     /**
@@ -101,9 +113,16 @@ public class ClickHouseSerDe implements SerDe {
         throw new UnsupportedOperationException("Reads are not allowed");
     }
 
+    /**
+     * Get the object inspector that can be used to navigate through the internal structure
+     * of the Object returned from deserialize(...). Not supported for this case
+     *
+     * @return
+     * @throws SerDeException
+     */
     @Override
     public ObjectInspector getObjectInspector() throws SerDeException {
-        return null;
+        throw new UnsupportedOperationException("Reads are not allowed");
     }
 
     @Override

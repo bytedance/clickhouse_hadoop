@@ -5,6 +5,6 @@ public class Constants {
     public static final String LIST_COLUMNS = "columns";
     // the type of each column
     public static final String LIST_COLUMN_TYPES = "column.types";
-    public static final String CK_CONN_STR = "clickhouse.conn.url";
+    public static final String CK_CONN_STRS = "clickhouse.conn.urls";
     public static final String CK_TBL_NAME = "clickhouse.table.name";
 }

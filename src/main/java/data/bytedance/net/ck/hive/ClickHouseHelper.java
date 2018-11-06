@@ -8,15 +8,17 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class ClickHouseHelper {
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseHelper.class);
     private static HashMap<Tuple<String, String>, ClickHouseHelper> ckHelperCache = new HashMap<>();
-    private final String connStr;
+    private final String[] connStrings;
     private final String tableName;
     private List<String> columnNames = new ArrayList<>();
     private List<String> columnTypes = new ArrayList<>();
     private HashMap<String, String> nameTypeMap = new HashMap<>();
+    private Random rnd = new Random();
 
     static {
         try {
@@ -26,26 +28,28 @@ public class ClickHouseHelper {
         }
     }
 
-    public static ClickHouseHelper getClickHouseHelper(String connStr, String tableName) throws SQLException {
-        Tuple<String, String> k = new Tuple<>(connStr, tableName);
+    public static ClickHouseHelper getClickHouseHelper(String connStrings, String tableName) throws SQLException {
+        Tuple<String, String> k = new Tuple<>(connStrings, tableName);
+
         if (ckHelperCache.containsKey(k)) {
             return ckHelperCache.get(k);
         } else {
-            ClickHouseHelper helper = new ClickHouseHelper(connStr, tableName);
+            String[] connStrArr = connStrings.split(",");
+            ClickHouseHelper helper = new ClickHouseHelper(connStrArr, tableName);
             ckHelperCache.put(k, helper);
             return helper;
         }
     }
 
 
-    private ClickHouseHelper(String connStr, String tableName) throws SQLException {
-        this.connStr = connStr;
+    private ClickHouseHelper(String[] connStrings, String tableName) throws SQLException {
+        this.connStrings = connStrings;
         this.tableName = tableName;
         initColumnNamesAndTypesFromSystemQuery();
     }
 
     public Connection getClickHouseConnection() throws SQLException {
-        Connection connection = DriverManager.getConnection(getConnStr());
+        Connection connection = DriverManager.getConnection(pickConnStr());
         return connection;
     }
 
@@ -71,8 +75,8 @@ public class ClickHouseHelper {
         return nameTypeMap;
     }
 
-    public String getConnStr() {
-        return connStr;
+    public String pickConnStr() {
+        return connStrings[rnd.nextInt() % connStrings.length];
     }
 
     public String getTableName() {
