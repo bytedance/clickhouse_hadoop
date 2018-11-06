@@ -13,12 +13,12 @@ class ClickHouseHelperTest {
     @Test
     void testInitColumnsFromCK() throws SQLException, ClassNotFoundException {
         Class.forName("com.github.housepower.jdbc.ClickHouseDriver");
-        Connection conn = DriverManager.getConnection(TestHelper.getTestCkConnStr());
+        Connection conn = DriverManager.getConnection(TestHelper.ckConnStr);
         try {
             Statement stmt = conn.createStatement();
             stmt.executeQuery("drop table if exists test_ck_helper;");
             stmt.executeQuery("create table test_ck_helper(day default toDate( toDateTime(timestamp) ), timestamp UInt32, name String, impressions UInt32) Engine=MergeTree(day, (timestamp, name), 8192)");
-            ClickHouseHelper helper = new ClickHouseHelper(TestHelper.getTestCkConnStr(), "test_ck_helper");
+            ClickHouseHelper helper = ClickHouseHelper.getClickHouseHelper(TestHelper.ckConnStr, "test_ck_helper");
             List<String> columnNames = helper.getColumnNames();
             List<String> columnTypes = helper.getColumnTypes();
             Assert.assertEquals(4, columnNames.size());

@@ -23,6 +23,10 @@ public class ClickHouseSerDe extends AbstractSerDe {
     // The column and type mapping
     private List<String> columnNames;
 
+    public List<String> getColumnNames() {
+        return columnNames;
+    }
+
 
     /**
      * Set up the tlbProps of the destination
