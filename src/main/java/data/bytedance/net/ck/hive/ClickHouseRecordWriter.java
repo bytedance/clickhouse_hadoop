@@ -23,15 +23,14 @@ public class ClickHouseRecordWriter implements RecordWriter {
 
     public static String constructInsertQuery(String tableName, List<String> columnNames) {
         StringBuilder sql = new StringBuilder();
-        sql.append("INSERT INTO ");
-        sql.append(tableName);
+        sql.append("INSERT INTO ").append(tableName).append(" ");
 
         String fields = String.join(",", columnNames);
         String[] valueSlice = new String[columnNames.size()];
         Arrays.fill(valueSlice, "?");
         String values = String.join(",", valueSlice);
-        sql.append("(").append(fields).append(")").append("VALUES (")
-                .append(values).append(values).append(")");
+        sql.append("(").append(fields).append(") VALUES (")
+                .append(values).append(")");
         return sql.toString();
     }
 
