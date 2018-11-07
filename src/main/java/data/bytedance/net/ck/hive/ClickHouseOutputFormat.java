@@ -65,7 +65,7 @@ public class ClickHouseOutputFormat<V> implements HiveOutputFormat<ClickHouseWri
     }
 
     @Override
-    public RecordWriter<ClickHouseWritable, V> getRecordWriter(
+    public org.apache.hadoop.mapred.RecordWriter<ClickHouseWritable, V> getRecordWriter(
             FileSystem fileSystem, JobConf jobConf, String s, Progressable progressable
     ) throws IOException {
         // Hive should not invoke this method
