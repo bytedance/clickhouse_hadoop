@@ -43,11 +43,11 @@ public class ClickHouseSerDe extends AbstractSerDe {
             logger.debug("tblProps" + tblProps);
         }
         // a list of connection strings separated by comma, for load balancing
-        String connStrings = tblProps.getProperty(Constants.CK_CONN_STRS);
+        String ckConnectionStrings = tblProps.getProperty(Constants.CK_CONN_STRS);
         String tblName = tblProps.getProperty(Constants.CK_TBL_NAME);
 
         // Table name and connection string are required
-        if (connStrings == null || connStrings == "") {
+        if (ckConnectionStrings == null || ckConnectionStrings == "") {
             throw new SerDeException(Constants.CK_CONN_STRS + " must be set in TBLPROPERTIES");
         }
 
@@ -64,7 +64,7 @@ public class ClickHouseSerDe extends AbstractSerDe {
         } else {
             ClickHouseHelper helper;
             try {
-                helper = ClickHouseHelper.getClickHouseHelper(connStrings, tblName);
+                helper = ClickHouseHelper.getClickHouseHelper(ckConnectionStrings, tblName);
             } catch (SQLException e) {
                 throw new SerDeException(e.getCause());
             }

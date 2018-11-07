@@ -123,6 +123,6 @@ class ClickHouseSerDeTest {
 
         ClickHouseWritable writable = (ClickHouseWritable) serDe.serialize(rowObject, inspector);
         Assert.assertEquals(10, writable.getValue().size());
-
+        // TODO: verify serialized values
     }
 }
