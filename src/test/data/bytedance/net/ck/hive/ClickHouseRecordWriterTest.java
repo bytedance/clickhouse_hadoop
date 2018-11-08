@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class ClickHouseRecordWriterTest {
 
     @Test
@@ -19,7 +17,6 @@ class ClickHouseRecordWriterTest {
         String query = ClickHouseRecordWriter.constructInsertQuery("test", columns);
         String expected = "INSERT INTO test (c1,c2,c3) VALUES (?,?,?)";
         Assert.assertEquals(expected, query);
-
     }
 
 }
