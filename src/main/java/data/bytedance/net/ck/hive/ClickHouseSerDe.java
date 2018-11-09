@@ -1,5 +1,7 @@
 package data.bytedance.net.ck.hive;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import data.bytedance.net.utils.Tuple;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.serde2.AbstractSerDe;
@@ -8,17 +10,24 @@ import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeStats;
 import org.apache.hadoop.hive.serde2.dynamic_type.DynamicSerDeDefinition;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
+import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
+import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 import org.apache.hadoop.io.Writable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.*;
 
 public class ClickHouseSerDe extends AbstractSerDe {
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseSerDe.class);
+    private ObjectInspector inspector;
 
     // The column and type mapping
     private List<String> columnNames;
@@ -57,19 +66,37 @@ public class ClickHouseSerDe extends AbstractSerDe {
 
 
         String columnNameProperty = tblProps.getProperty(Constants.LIST_COLUMNS);
+        List<String> columnTypes;
+        ClickHouseHelper helper;
+        try {
+            helper = ClickHouseHelper.getClickHouseHelper(ckConnectionStrings, tblName);
+        } catch (SQLException e) {
+            throw new SerDeException(e.getCause());
+        }
 
         // if columns and column types are not explicitly defined, we need to find them out.
         if (columnNameProperty != null || columnNameProperty != "") {
             columnNames = Arrays.asList(columnNameProperty.split(","));
-        } else {
-            ClickHouseHelper helper;
-            try {
-                helper = ClickHouseHelper.getClickHouseHelper(ckConnectionStrings, tblName);
-            } catch (SQLException e) {
-                throw new SerDeException(e.getCause());
+            columnTypes = new ArrayList<>();
+            Map<String, String> typeMap = helper.getNameTypeMap();
+            for (String n : columnNames) {
+                columnTypes.add(typeMap.get(n));
             }
+        } else {
             columnNames = helper.getColumnNames();
+            columnTypes = helper.getColumnTypes();
         }
+        List<ObjectInspector> inspectors = new ArrayList<>();
+
+        inspectors.addAll(Lists.transform(columnTypes, new Function<String, ObjectInspector>() {
+            @Nullable
+            @Override
+            public ObjectInspector apply(@Nullable String s) {
+                return PrimitiveObjectInspectorFactory.getPrimitiveWritableObjectInspector(
+                        TypeInfoFactory.getPrimitiveTypeInfo(ClickHouseHelper.ClickHouseToHiveType(s)));
+            }
+        }));
+        inspector = ObjectInspectorFactory.getStandardStructObjectInspector(columnNames, inspectors);
     }
 
     @Override
@@ -126,7 +153,7 @@ public class ClickHouseSerDe extends AbstractSerDe {
      */
     @Override
     public ObjectInspector getObjectInspector() throws SerDeException {
-        throw new UnsupportedOperationException("Reads are not allowed");
+        return inspector;
     }
 
     @Override

@@ -91,4 +91,33 @@ public class ClickHouseHelper {
     public List<String> getColumnTypes() {
         return columnTypes;
     }
+
+    public static String ClickHouseToHiveType(String hiveTypeStr) {
+        switch (hiveTypeStr) {
+            case "Int8":
+            case "UInt8":
+                return "byte";
+            case "Int16":
+            case "UInt16":
+                return "short";
+            case "Int32":
+            case "UInt32":
+                return "int";
+            case "Int64":
+            case "UInt64":
+                return "long";
+            case "Float64":
+                return "double";
+            case "Float32":
+                return "float";
+            case "String":
+                return "string";
+            case "DateTime":
+                return "timestamp";
+            case "Date":
+                return "date";
+            default:
+                return null;
+        }
+    }
 }
