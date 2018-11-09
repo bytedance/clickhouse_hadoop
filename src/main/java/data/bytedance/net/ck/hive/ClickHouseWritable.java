@@ -11,8 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A serializable object which implements a serialization protocol
- * based on DataInput and dataOutput
+ * Represents the serialized data getting from Hive.
  */
 public class ClickHouseWritable implements Writable {
     Map<String, Tuple<? extends StructField, Object>> value;

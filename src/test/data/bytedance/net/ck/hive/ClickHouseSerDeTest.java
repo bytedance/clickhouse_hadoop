@@ -83,6 +83,10 @@ class ClickHouseSerDeTest {
 
     }
 
+    /**
+     * Test that the data from Hive can be correctly serialized
+     * @throws SerDeException
+     */
     @Test
     public void testClickHouseObjectSerializer() throws SerDeException {
         ClickHouseSerDe serDe = new ClickHouseSerDe();
