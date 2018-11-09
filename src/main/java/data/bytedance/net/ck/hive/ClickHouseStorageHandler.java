@@ -15,12 +15,12 @@ import java.util.Map;
 public class ClickHouseStorageHandler implements HiveStorageHandler {
     @Override
     public Class<? extends org.apache.hadoop.mapred.InputFormat> getInputFormatClass() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Class<? extends org.apache.hadoop.mapred.OutputFormat> getOutputFormatClass() {
-        return null;
+        return ClickHouseOutputFormat.class;
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -93,7 +94,7 @@ class ClickHouseRecordWriterTest {
     }
 
     @Test
-    public void testWrite() throws SQLException, ClassNotFoundException, SerDeException, IOException {
+    public void testWriteSingleRow() throws SQLException, ClassNotFoundException, SerDeException, IOException {
         List<String> columnNames = helper.getColumnNames();
         ClickHouseRecordWriter recordWriter = new ClickHouseRecordWriter(
                 helper, 5, TABLE_NAME, columnNames, helper.getColumnTypes());
@@ -117,7 +118,36 @@ class ClickHouseRecordWriterTest {
         };
         ClickHouseWritable writable = TestHelper.serializeObject(serDe, row_object1, COLUMN_HIVE_TYPES);
         recordWriter.write(writable);
+        // force flush
         recordWriter.close(true);
         Connection conn = helper.getClickHouseConnection();
+        Statement stmt = conn.createStatement();
+        try {
+            ResultSet rs = stmt.executeQuery("SELECT " + String.join(",", columnNames) + " FROM " + TABLE_NAME);
+            int count = 0;
+            while (rs.next()) {
+                ++count;
+                if (count > 1) {
+                    Assert.assertTrue("There can only be one row", count <= 1);
+                }
+                Assert.assertEquals(new Timestamp(1377907200000L), rs.getTimestamp(1));
+                Assert.assertEquals("dim1_val", rs.getString(2));
+                Assert.assertEquals("dim2_v", rs.getString(3));
+                Assert.assertEquals("dim3_val", rs.getString(4));
+                Assert.assertEquals(10669.3D, rs.getDouble(5));
+                Assert.assertEquals(10669.45F, rs.getFloat(6));
+                Assert.assertEquals(1113939, rs.getLong(7));
+                Assert.assertEquals(1112123, rs.getInt(8));
+                Assert.assertEquals((short) 12, rs.getShort(9));
+                Assert.assertEquals((byte) 0, rs.getByte(10));
+            }
+        } finally {
+            conn.close();
+            stmt.close();
+        }
+    }
+
+    @Test
+    public void testWriteAutoBatch() {
     }
 }
