@@ -8,17 +8,16 @@ import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeUtils;
 import org.apache.hadoop.hive.serde2.io.ByteWritable;
 import org.apache.hadoop.hive.serde2.io.DoubleWritable;
-import org.apache.hadoop.hive.serde2.io.ShortWritable;
-import org.apache.hadoop.hive.serde2.io.TimestampWritable;
-
 import org.apache.hadoop.hive.serde2.io.HiveCharWritable;
 import org.apache.hadoop.hive.serde2.io.HiveVarcharWritable;
+import org.apache.hadoop.hive.serde2.io.ShortWritable;
+import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -56,8 +55,8 @@ class ClickHouseRecordWriterTest {
     private static final String COLUMN_HIVE_TYPES = "timestamp,string,char(6),varchar(8),double,float,bigint,int,smallint,tinyint";
     private static ClickHouseHelper helper;
 
-    @BeforeAll
-    public static void beforeTest() throws SQLException, ClassNotFoundException {
+    @BeforeEach
+    public void beforeTest() throws SQLException, ClassNotFoundException {
         Class.forName("com.github.housepower.jdbc.ClickHouseDriver");
         Connection c = DriverManager.getConnection(TestHelper.ckConnStr);
         try {
@@ -70,8 +69,8 @@ class ClickHouseRecordWriterTest {
         helper = ClickHouseHelper.getClickHouseHelper(TestHelper.ckConnStr, TABLE_NAME);
     }
 
-    @AfterAll
-    public static void afterTest() throws SQLException {
+    @AfterEach
+    public void afterTest() throws SQLException {
         Connection c = helper.getClickHouseConnection();
         try {
             Statement stmt = c.createStatement();
@@ -82,6 +81,9 @@ class ClickHouseRecordWriterTest {
 
     }
 
+    /**
+     * Test that the insert query can be correctly constructed from column names and table name
+     */
     @Test
     public void testConstructInsertQuery() {
         List<String> columns = new ArrayList<String>();
@@ -93,6 +95,14 @@ class ClickHouseRecordWriterTest {
         Assert.assertEquals(expected, query);
     }
 
+    /**
+     * Test that the writer can correctly write data to ClickHouse
+     *
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     * @throws SerDeException
+     * @throws IOException
+     */
     @Test
     public void testWriteSingleRow() throws SQLException, ClassNotFoundException, SerDeException, IOException {
         List<String> columnNames = helper.getColumnNames();
@@ -147,7 +157,47 @@ class ClickHouseRecordWriterTest {
         }
     }
 
+    /**
+     * Make sure that the RecordWriter will correctly flush the in memory rows as long as the number reaches the
+     * batch size
+     *
+     * @throws SerDeException
+     * @throws IOException
+     * @throws SQLException
+     */
     @Test
-    public void testWriteAutoBatch() {
+    public void testWriteAutoBatch() throws SerDeException, IOException, SQLException {
+        int batchSize = 5;
+        List<String> columnNames = helper.getColumnNames();
+        ClickHouseRecordWriter recordWriter = new ClickHouseRecordWriter(
+                helper, batchSize, TABLE_NAME, columnNames, helper.getColumnTypes());
+
+        ClickHouseSerDe serDe = new ClickHouseSerDe();
+        Configuration conf = new Configuration();
+        Properties tblProps = TestHelper.createPropertiesSource(TABLE_NAME, String.join(",", columnNames));
+        SerDeUtils.initializeSerDe(serDe, conf, tblProps, null);
+
+        Object[] row_object1 = new Object[]{
+                new TimestampWritable(new Timestamp(1377907200000L)),
+                new Text("dim1_val"),
+                new HiveCharWritable(new HiveChar("dim2_v", 6)),
+                new HiveVarcharWritable(new HiveVarchar("dim3_val", 8)),
+                new DoubleWritable(10669.3D),
+                new FloatWritable(10669.45F),
+                new LongWritable(1113939),
+                new IntWritable(1112123),
+                new ShortWritable((short) 12),
+                new ByteWritable((byte) 0),
+        };
+        ClickHouseWritable writable = TestHelper.serializeObject(serDe, row_object1, COLUMN_HIVE_TYPES);
+        for (int i = 0; i < batchSize; ++i) {
+            recordWriter.write(writable);
+        }
+        Connection conn = helper.getClickHouseConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + TABLE_NAME);
+        rs.next();
+        Assert.assertEquals(5, rs.getInt(1));
+
     }
 }
