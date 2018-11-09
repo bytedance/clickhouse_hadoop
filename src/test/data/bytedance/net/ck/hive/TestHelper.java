@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class TestHelper {
-    public static String ckConnStr = "jdbc:clickhouse://172.31.0.18:9000";
+    public static String ckConnStr = "jdbc:clickhouse://localhost:9000";
 
     public static ClickHouseWritable serializeObject(ClickHouseSerDe serDe,
                                                      Object[] rowObject, String types)  throws SerDeException {
