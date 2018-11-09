@@ -86,23 +86,6 @@
           <fork>true</fork>
         </configuration>
       </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <minimizeJar>true</minimizeJar>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
 
   </build>
