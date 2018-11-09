@@ -7,6 +7,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
+import org.apache.hadoop.hive.ql.security.authorization.DefaultHiveAuthorizationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
 import org.apache.hadoop.hive.serde2.SerDe;
 
@@ -35,18 +36,18 @@ public class ClickHouseStorageHandler implements HiveStorageHandler {
 
     @Override
     public HiveAuthorizationProvider getAuthorizationProvider() throws HiveException {
-        return null;
+        return new DefaultHiveAuthorizationProvider();
     }
 
     @Override
-    public void configureInputJobProperties(
-            TableDesc tableDesc, Map<String, String> map
-    ) {
+    public void configureInputJobProperties(TableDesc tableDesc, Map<String, String> map) {
+        // DO Nothing
 
     }
 
     @Override
     public void configureOutputJobProperties(TableDesc tableDesc, Map<String, String> map) {
+        // Do nothing
 
     }
 
