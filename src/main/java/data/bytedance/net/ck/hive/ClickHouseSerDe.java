@@ -121,11 +121,15 @@ public class ClickHouseSerDe extends AbstractSerDe {
         }
 
         StructObjectInspector soi = (StructObjectInspector) objectInspector;
+
+        List<? extends StructField> fields = soi.getAllStructFieldRefs();
+        List<Object> values = soi.getStructFieldsDataAsList(o);
+
         HashMap<String, Tuple<? extends StructField, Object>> value = new HashMap<>();
-        for (String columnName : columnNames) {
-            StructField ref = soi.getStructFieldRef(columnName);
-            Object data = soi.getStructFieldData(o, ref);
-            value.put(columnName, new Tuple<>(ref, data));
+        for (int i = 0; i < columnNames.size(); i++) {
+            StructField ref = fields.get(i);
+            Object data = values.get(i);
+            value.put(columnNames.get(i), new Tuple<>(ref, data));
         }
         return new ClickHouseWritable(value);
     }
