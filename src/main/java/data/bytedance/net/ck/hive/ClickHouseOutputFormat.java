@@ -68,14 +68,11 @@ public class ClickHouseOutputFormat<V> implements HiveOutputFormat<ClickHouseWri
     public org.apache.hadoop.mapred.RecordWriter<ClickHouseWritable, V> getRecordWriter(
             FileSystem fileSystem, JobConf jobConf, String s, Progressable progressable
     ) throws IOException {
-        // Hive should not invoke this method
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void checkOutputSpecs(FileSystem fileSystem, JobConf jobConf) throws IOException {
         // hive should not invoke this method
-        throw new UnsupportedOperationException();
-
     }
 }

@@ -14,6 +14,7 @@ import org.apache.hadoop.hive.serde2.SerDe;
 import java.util.Map;
 
 public class ClickHouseStorageHandler implements HiveStorageHandler {
+    private Configuration conf;
     @Override
     public Class<? extends org.apache.hadoop.mapred.InputFormat> getInputFormatClass() {
         return ClickHouseInputFormat.class;
@@ -63,12 +64,12 @@ public class ClickHouseStorageHandler implements HiveStorageHandler {
 
     @Override
     public void setConf(Configuration configuration) {
-
+        conf = configuration;
     }
 
     @Override
     public Configuration getConf() {
-        return null;
+        return conf;
     }
 
     /**
