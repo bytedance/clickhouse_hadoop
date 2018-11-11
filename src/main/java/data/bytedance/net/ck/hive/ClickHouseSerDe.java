@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import data.bytedance.net.utils.Tuple;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.AbstractSerDe;
 import org.apache.hadoop.hive.serde2.SerDe;
 import org.apache.hadoop.hive.serde2.SerDeException;
@@ -65,7 +66,7 @@ public class ClickHouseSerDe extends AbstractSerDe {
         }
 
 
-        String columnNameProperty = tblProps.getProperty(Constants.LIST_COLUMNS);
+        String columnNameProperty = tblProps.getProperty(serdeConstants.LIST_COLUMNS);
         List<String> columnTypes;
         ClickHouseHelper helper;
         try {
