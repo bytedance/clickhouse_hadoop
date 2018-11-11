@@ -16,7 +16,7 @@ import java.util.Map;
 public class ClickHouseStorageHandler implements HiveStorageHandler {
     @Override
     public Class<? extends org.apache.hadoop.mapred.InputFormat> getInputFormatClass() {
-        throw new UnsupportedOperationException();
+        return ClickHouseInputFormat.class;
     }
 
     @Override
