@@ -54,7 +54,7 @@
   </dependencies>
   <profiles>
     <profile>
-      <id>hadoop</id>
+      <id>hadoop26</id>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
