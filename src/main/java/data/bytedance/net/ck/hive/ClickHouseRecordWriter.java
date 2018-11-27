@@ -69,8 +69,8 @@ public class ClickHouseRecordWriter implements RecordWriter {
         for (int i = 0; i < columnNames.size(); i++) {
             String columnName = columnNames.get(i);
             String columnType = columnTypes.get(i);
-            if (value.containsKey(columnName)) {
-                Tuple<? extends StructField, Object> v = value.get(columnName);
+            Tuple<? extends StructField, Object> v = value.containsKey(columnName) ? value.get(columnName) : null;
+            if (v != null && v.y != null) {
                 StructField structField = v.x;
                 Object obj = v.y;
                 switch (columnType) {

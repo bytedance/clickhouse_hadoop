@@ -76,7 +76,7 @@ public class ClickHouseHelper {
     }
 
     public String pickConnStr() {
-        return connStrings[rnd.nextInt() % connStrings.length];
+        return connStrings[rnd.nextInt(connStrings.length)];
     }
 
     public String getTableName() {
@@ -105,7 +105,7 @@ public class ClickHouseHelper {
                 return "int";
             case "Int64":
             case "UInt64":
-                return "long";
+                return "bigint";
             case "Float64":
                 return "double";
             case "Float32":
