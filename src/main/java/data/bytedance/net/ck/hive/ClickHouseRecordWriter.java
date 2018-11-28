@@ -23,6 +23,7 @@ import parquet.Preconditions;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +36,7 @@ public class ClickHouseRecordWriter implements RecordWriter {
     private final String insertQuery;
     private final ClickHouseHelper clickHouseHelper;
 
-    private Connection currentConnection = null;
-    private PreparedStatement currentStatement;
-    private int currentBatchSize = 0;
+    private ArrayList<Map<String, Tuple<? extends StructField, Object>>> data = new ArrayList<>();
 
     public ClickHouseRecordWriter(ClickHouseHelper helper, int batchSize, String tableName,
                                   List<String> columnNames, List<String> columnTypes) {
@@ -161,58 +160,60 @@ public class ClickHouseRecordWriter implements RecordWriter {
         stmt.addBatch();
     }
 
-    @Override
-    public void write(Writable w) throws IOException {
+    public void flush(int retry, Exception exception) throws IOException {
+        if (data.isEmpty()) {
+            return;
+        }
+        if (retry == 0) {
+            logger.error("No more retry, failed!");
+            if (exception != null) {
+                throw new IOException(exception);
+            } else {
+                throw new IOException("Flush error!");
+            }
+        }
+        Connection connection = null;
+        PreparedStatement statement = null;
         try {
-            if (currentConnection == null || currentStatement == null) {
-                currentConnection = clickHouseHelper.getClickHouseConnection();
-                currentStatement = currentConnection.prepareStatement(this.insertQuery);
-                currentBatchSize = 0;
-            }
+            connection = clickHouseHelper.getClickHouseConnection();
+            statement = connection.prepareStatement(this.insertQuery);
 
-            ClickHouseWritable ckWritable = (ClickHouseWritable) w;
-            addValuesToBatch(ckWritable.getValue(), currentStatement, columnNames, columnTypes);
-            currentBatchSize++;
-            if (currentBatchSize >= batchSize) {
-                currentStatement.executeBatch();
-                currentStatement.close();
-                currentConnection.close();
-                currentBatchSize = 0;
-                currentConnection = null;
-                currentStatement = null;
+            for(Map value : data) {
+                addValuesToBatch(value, statement, columnNames, columnTypes);
             }
+            statement.executeBatch();
+            data.clear();
         } catch (SQLException e) {
-            if (currentStatement != null && currentBatchSize > 0) {
-                try {
-                    currentStatement.executeBatch();
-                    currentStatement.close();
-                    currentConnection.close();
-                } catch (SQLException ee) {
-                    logger.error("Can't even commit the current batch", ee);
-                }
-            }
-            currentBatchSize = 0;
-            currentConnection = null;
-            currentStatement = null;
             logger.error("Write error", e);
-            throw new IOException(e);
+            flush(retry - 1, e);
+        } finally {
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                logger.error("Error closing resource", e);
+            }
         }
     }
 
     @Override
-    public void close(boolean abort) throws IOException {
-        try {
-            if (currentStatement != null) {
-                if (currentBatchSize > 0) {
-                    currentStatement.executeBatch();
-                }
-                currentBatchSize = 0;
-                currentStatement.close();
-                currentConnection.close();
-            }
-        } catch (SQLException e) {
-            throw new IOException(e);
+    public void write(Writable w) throws IOException {
+
+        ClickHouseWritable ckWritable = (ClickHouseWritable) w;
+        data.add(ckWritable.getValue());
+
+        if (data.size() >= batchSize) {
+            flush(3, null);
         }
 
+    }
+
+    @Override
+    public void close(boolean abort) throws IOException {
+        flush(3, null);
     }
 }

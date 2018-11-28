@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-class ClickHouseRecordWriterTest {
+public class ClickHouseRecordWriterTest {
 
     private static final String TABLE_NAME = "testWriter";
     private static final String CLICKHOUSE_CREATE_TABLE_STMT = "CREATE TABLE IF NOT EXISTS testWriter\n" +

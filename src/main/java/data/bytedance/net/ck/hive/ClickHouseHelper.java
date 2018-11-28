@@ -96,10 +96,10 @@ public class ClickHouseHelper {
         switch (hiveTypeStr) {
             case "Int8":
             case "UInt8":
-                return "byte";
+                return "tinyint";
             case "Int16":
             case "UInt16":
-                return "short";
+                return "smallint";
             case "Int32":
             case "UInt32":
                 return "int";

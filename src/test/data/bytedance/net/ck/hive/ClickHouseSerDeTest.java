@@ -20,7 +20,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Properties;
 
-class ClickHouseSerDeTest {
+public class ClickHouseSerDeTest {
 
     private static final String COLUMN_NAMES = "time,c0,c1,c2,c3,c4,c5,c6,c7,c8";
     private static final Object[] ROW_OBJECT = new Object[]{

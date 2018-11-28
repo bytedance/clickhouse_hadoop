@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
-class ClickHouseHelperTest {
+public class ClickHouseHelperTest {
     @Test
     void testInitColumnsFromCK() throws SQLException, ClassNotFoundException {
         Class.forName("com.github.housepower.jdbc.ClickHouseDriver");
