@@ -45,7 +45,7 @@ public class ClickHouseOutputFormat<V> implements HiveOutputFormat<ClickHouseWri
             if (batchSizeStr == null || batchSizeStr == "") {
                 batchSize = Constants.DEFAULT_BATCH_SIZE;
             } else {
-                Integer.parseInt(batchSizeStr);
+                batchSize = Integer.parseInt(batchSizeStr);
             }
         } catch (NumberFormatException e) {
             logger.info(String.format("Parsing %s failed, use default", batchSizeStr), e);
