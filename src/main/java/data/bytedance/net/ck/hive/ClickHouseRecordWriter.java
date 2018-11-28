@@ -182,6 +182,7 @@ public class ClickHouseRecordWriter implements RecordWriter {
                 addValuesToBatch(value, statement, columnNames, columnTypes);
             }
             statement.executeBatch();
+            logger.info("Flushed " + data.size() + " rows of data");
             data.clear();
         } catch (SQLException e) {
             logger.error("Write error", e);
