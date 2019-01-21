@@ -50,11 +50,13 @@
       <version>5.3.1</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
   <profiles>
     <profile>
       <id>hadoop26</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>

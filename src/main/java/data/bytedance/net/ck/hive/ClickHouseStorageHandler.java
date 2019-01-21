@@ -12,6 +12,7 @@ import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvide
 import org.apache.hadoop.hive.serde2.SerDe;
 
 import java.util.Map;
+import java.util.Properties;
 
 public class ClickHouseStorageHandler implements HiveStorageHandler {
     private Configuration conf;
@@ -41,25 +42,27 @@ public class ClickHouseStorageHandler implements HiveStorageHandler {
     }
 
     @Override
-    public void configureInputJobProperties(TableDesc tableDesc, Map<String, String> map) {
-        // DO Nothing
-
+    public void configureInputJobProperties(TableDesc tableDesc, Map<String, String> jobProperties) {
+        configureTableJobProperties(tableDesc, jobProperties);
     }
 
     @Override
-    public void configureOutputJobProperties(TableDesc tableDesc, Map<String, String> map) {
-        // Do nothing
-
+    public void configureOutputJobProperties(TableDesc tableDesc, Map<String, String> jobProperties) {
+        configureTableJobProperties(tableDesc, jobProperties);
     }
 
     @Override
-    public void configureTableJobProperties(TableDesc tableDesc, Map<String, String> map) {
-
+    public void configureTableJobProperties(TableDesc tableDesc, Map<String, String> jopProperties) {
+        Properties tableProps = tableDesc.getProperties();
+        for (String key: tableProps.stringPropertyNames()) {
+            if (conf == null || conf.get(key) == null) {
+                jopProperties.put(key, tableProps.getProperty(key));
+            }
+        }
     }
 
     @Override
     public void configureJobConf(TableDesc tableDesc, org.apache.hadoop.mapred.JobConf jobConf) {
-
     }
 
     @Override
