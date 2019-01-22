@@ -165,12 +165,8 @@ public class ClickHouseRecordWriter implements RecordWriter {
             return;
         }
         if (retry == 0) {
-            logger.error("No more retry, failed!");
-            if (exception != null) {
-                throw new IOException(exception);
-            } else {
-                throw new IOException("Flush error!");
-            }
+            logger.error("No more retry, failed!", exception);
+            return;
         }
         Connection connection = null;
         PreparedStatement statement = null;
