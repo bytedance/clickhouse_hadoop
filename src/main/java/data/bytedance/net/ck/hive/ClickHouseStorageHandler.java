@@ -43,22 +43,24 @@ public class ClickHouseStorageHandler implements HiveStorageHandler {
 
     @Override
     public void configureInputJobProperties(TableDesc tableDesc, Map<String, String> jobProperties) {
-        configureTableJobProperties(tableDesc, jobProperties);
+        // configureTableJobProperties(tableDesc, jobProperties);
     }
 
     @Override
     public void configureOutputJobProperties(TableDesc tableDesc, Map<String, String> jobProperties) {
-        configureTableJobProperties(tableDesc, jobProperties);
+        // configureTableJobProperties(tableDesc, jobProperties);
     }
 
     @Override
     public void configureTableJobProperties(TableDesc tableDesc, Map<String, String> jopProperties) {
+      /*
         Properties tableProps = tableDesc.getProperties();
         for (String key: tableProps.stringPropertyNames()) {
             if (conf == null || conf.get(key) == null) {
                 jopProperties.put(key, tableProps.getProperty(key));
             }
         }
+        */
     }
 
     @Override

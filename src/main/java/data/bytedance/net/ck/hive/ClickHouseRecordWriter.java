@@ -200,7 +200,7 @@ public class ClickHouseRecordWriter implements RecordWriter {
                     doFlush();
                     break;
                 } catch (Exception e) {
-                    logger.error("Error flushing, retrying", e)
+                    logger.error("Error flushing, retrying", e);
                 }
             }
         } finally {
