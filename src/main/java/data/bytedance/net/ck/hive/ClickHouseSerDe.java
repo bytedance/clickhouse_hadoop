@@ -122,7 +122,7 @@ public class ClickHouseSerDe extends AbstractSerDe {
             switch (types[i].getPrimitiveCategory()) {
             case TIMESTAMP:
                 res = ((TimestampObjectInspector) fields.get(i).getFieldObjectInspector())
-                        .getPrimitiveJavaObject(values.get(i)).getTime();
+                        .getPrimitiveJavaObject(values.get(i));
                 break;
             case BYTE:
                 res = ((ByteObjectInspector) fields.get(i).getFieldObjectInspector()).get(values.get(i));

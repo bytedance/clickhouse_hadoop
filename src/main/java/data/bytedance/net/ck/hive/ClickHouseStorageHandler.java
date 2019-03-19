@@ -12,7 +12,6 @@ import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvide
 import org.apache.hadoop.hive.serde2.SerDe;
 
 import java.util.Map;
-import java.util.Properties;
 
 public class ClickHouseStorageHandler implements HiveStorageHandler {
     private Configuration conf;
