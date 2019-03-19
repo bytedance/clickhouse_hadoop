@@ -160,17 +160,10 @@ public class ClickHouseRecordWriter implements RecordWriter {
         stmt.addBatch();
     }
 
-    public void flush(int retry, Exception exception) throws IOException {
+    // reall does the flush
+    private void doFlush() throws IOException {
         if (data.isEmpty()) {
             return;
-        }
-        if (retry == 0) {
-            logger.error("No more retry, failed!");
-            if (exception != null) {
-                throw new IOException(exception);
-            } else {
-                throw new IOException("Flush error!");
-            }
         }
         Connection connection = null;
         PreparedStatement statement = null;
@@ -178,15 +171,14 @@ public class ClickHouseRecordWriter implements RecordWriter {
             connection = clickHouseHelper.getClickHouseConnection();
             statement = connection.prepareStatement(this.insertQuery);
 
-            for(Map value : data) {
+            for(Map<String, Tuple<? extends StructField, Object>> value : data) {
                 addValuesToBatch(value, statement, columnNames, columnTypes);
             }
             statement.executeBatch();
+
             logger.info("Flushed " + data.size() + " rows of data");
-            data.clear();
-        } catch (SQLException e) {
-            logger.error("Write error", e);
-            flush(retry - 1, e);
+        } catch (SQLException e)  {
+          throw new IOException(e);
         } finally {
             try {
                 if (statement != null) {
@@ -201,20 +193,34 @@ public class ClickHouseRecordWriter implements RecordWriter {
         }
     }
 
+    public void flush(int retry) throws IOException {
+        try {
+            while(retry-- > 0) {
+                try {
+                    doFlush();
+                    break;
+                } catch (Exception e) {
+                    logger.error("Error flushing, retrying", e)
+                }
+            }
+        } finally {
+            data.clear();
+        }
+    }
+
+    // Write the data, the writable comes from the ClickHouseSerDe
     @Override
     public void write(Writable w) throws IOException {
-
         ClickHouseWritable ckWritable = (ClickHouseWritable) w;
         data.add(ckWritable.getValue());
-
         if (data.size() >= batchSize) {
-            flush(3, null);
+            flush(3);
         }
-
     }
 
     @Override
     public void close(boolean abort) throws IOException {
-        flush(3, null);
+        logger.info("Closing Writer, flush remaining: " + data.size());
+        flush(3);
     }
 }

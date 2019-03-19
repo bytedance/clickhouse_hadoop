@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class ClickHouseOutputFormat<V> implements HiveOutputFormat<ClickHouseWritable, V> {
     private static Logger logger = LoggerFactory.getLogger(ClickHouseOutputFormat.class);
@@ -28,6 +30,12 @@ public class ClickHouseOutputFormat<V> implements HiveOutputFormat<ClickHouseWri
             Properties tblProps,
             Progressable progressable
     ) throws IOException {
+        logger.info("Table Properties");
+        Set<Entry<Object, Object>> entries = tblProps.entrySet();
+        for (Entry<Object, Object> entry: entries) {
+            logger.info(entry.getKey() + " : " + entry.getValue());
+        }
+
         String ckConnectionStrings = tblProps.getProperty(Constants.CK_CONN_STRS);
         String tblName = tblProps.getProperty(Constants.CK_TBL_NAME);
         // Table name and connection string are required

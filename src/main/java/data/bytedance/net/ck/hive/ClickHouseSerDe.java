@@ -63,6 +63,7 @@ public class ClickHouseSerDe extends AbstractSerDe {
 
 
         String columnNameProperty = tblProps.getProperty(serdeConstants.LIST_COLUMNS);
+        logger.info("Column Names: " + columnNameProperty);
         List<String> columnTypes;
         ClickHouseHelper helper;
         try {
@@ -71,7 +72,7 @@ public class ClickHouseSerDe extends AbstractSerDe {
             throw new SerDeException(e.getCause());
         }
 
-        // if columns and column types are not explicitly defined, we need to find them out.
+        // if columns and column types are not explicitly defined, we need to find them out from clickhouse schema
         if (columnNameProperty != null || columnNameProperty != "") {
             columnNames = Arrays.asList(columnNameProperty.split(","));
             columnTypes = new ArrayList<>();
@@ -103,7 +104,7 @@ public class ClickHouseSerDe extends AbstractSerDe {
 
     /**
      * This method takes an object representing a row of data from Hive, and uses the ObjectInspector
-     * to get the data for each data and serialize
+     * to get the data for each data and serialize it into Writable -- a serializable object
      *
      * @param o
      * @param objectInspector
