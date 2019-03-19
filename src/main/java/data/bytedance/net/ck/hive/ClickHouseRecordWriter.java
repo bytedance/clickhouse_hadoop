@@ -31,18 +31,20 @@ import java.util.Map;
 public class ClickHouseRecordWriter implements RecordWriter {
     private static Logger logger = LoggerFactory.getLogger(ClickHouseRecordWriter.class);
     private final int batchSize;
-    private final List<String> columnNames;
-    private final List<String> columnTypes;
+    // the column names of the remote clickhouse table
+    private final List<String> clickhouseColNames;
+    // the column types of the remote clickhouse table
+    private final List<String> clickhouseColTypes;
     private final String insertQuery;
     private final ClickHouseHelper clickHouseHelper;
 
-    private ArrayList<Map<String, Tuple<? extends StructField, Object>>> data = new ArrayList<>();
+    private ArrayList<Map<String, Object>> data = new ArrayList<>();
 
     public ClickHouseRecordWriter(ClickHouseHelper helper, int batchSize, String tableName,
                                   List<String> columnNames, List<String> columnTypes) {
         this.batchSize = batchSize;
-        this.columnNames = columnNames;
-        this.columnTypes = columnTypes;
+        this.clickhouseColNames = columnNames;
+        this.clickhouseColTypes = columnTypes;
         this.insertQuery = constructInsertQuery(tableName, columnNames);
         this.clickHouseHelper = helper;
 
@@ -62,58 +64,45 @@ public class ClickHouseRecordWriter implements RecordWriter {
     }
 
     private static void addValuesToBatch(
-            Map<String, Tuple<? extends StructField, Object>> value,
+            Map<String, String> value,
             PreparedStatement stmt, List<String> columnNames, List<String> columnTypes) throws SQLException {
         Preconditions.checkArgument(columnNames.size() == columnTypes.size(), "Column types and column names must be matched");
         for (int i = 0; i < columnNames.size(); i++) {
             String columnName = columnNames.get(i);
             String columnType = columnTypes.get(i);
-            Tuple<? extends StructField, Object> v = value.containsKey(columnName) ? value.get(columnName) : null;
-            if (v != null && v.y != null) {
-                StructField structField = v.x;
-                Object obj = v.y;
+            Object obj = value.containsKey(columnName) ? value.get(columnName) : null;
+            if (obj != null) {
                 switch (columnType) {
                     case "Int8":
                     case "UInt8":
-                        stmt.setByte(i + 1, ((ByteObjectInspector) structField.getFieldObjectInspector()).get(obj));
+                        stmt.setByte(i + 1, (byte)obj);
                         break;
                     case "Int16":
                     case "UInt16":
-                        stmt.setShort(i + 1, ((ShortObjectInspector) structField.getFieldObjectInspector()).get(obj));
+                        stmt.setShort(i + 1, (short)obj);
                         break;
                     case "Int32":
                     case "UInt32":
-                        stmt.setInt(i + 1, ((IntObjectInspector) structField.getFieldObjectInspector()).get(obj));
+                        stmt.setInt(i + 1, (int)obj);
                         break;
                     case "Int64":
                     case "UInt64":
-                        stmt.setLong(i + 1, ((LongObjectInspector) structField.getFieldObjectInspector()).get(obj));
+                        stmt.setLong(i + 1, (long)obj);
                         break;
                     case "Float32":
-                        stmt.setFloat(i + 1, ((FloatObjectInspector) structField.getFieldObjectInspector()).get(obj));
+                        stmt.setFloat(i + 1, (float)obj);
                         break;
                     case "Float64":
-                        stmt.setDouble(i + 1, ((DoubleObjectInspector) structField.getFieldObjectInspector()).get(obj));
+                        stmt.setDouble(i + 1, (double)obj);
                         break;
                     case "String":
-                        ObjectInspector inspector = structField.getFieldObjectInspector();
-                        if (inspector instanceof HiveCharObjectInspector) {
-                            stmt.setString(i + 1,
-                                    ((HiveCharObjectInspector) inspector).getPrimitiveJavaObject(obj).getValue());
-                        } else if (inspector instanceof HiveVarcharObjectInspector) {
-                            stmt.setString(i + 1,
-                                    ((HiveVarcharObjectInspector) inspector).getPrimitiveJavaObject(obj).getValue());
-                        } else if (inspector instanceof StringObjectInspector) {
-                            stmt.setString(i + 1,
-                                    ((StringObjectInspector) inspector).getPrimitiveJavaObject(obj));
-                        }
+                        stmt.setString(i + 1, (String) obj);
                         break;
                     case "DateTime":
-                        stmt.setTimestamp(i + 1,
-                                ((TimestampObjectInspector) structField.getFieldObjectInspector()).getPrimitiveJavaObject(obj));
+                        stmt.setTimestamp(i + 1, (Timestamp) obj);
                         break;
                     case "Date":
-                        stmt.setDate(i + 1, ((DateObjectInspector) structField.getFieldObjectInspector()).getPrimitiveJavaObject(obj));
+                        stmt.setDate(i + 1, (Date) obj);
                         break;
                     default:
                         throw new SQLException(String.format("Un-supported type %s", columnType));
@@ -171,8 +160,8 @@ public class ClickHouseRecordWriter implements RecordWriter {
             connection = clickHouseHelper.getClickHouseConnection();
             statement = connection.prepareStatement(this.insertQuery);
 
-            for(Map<String, Tuple<? extends StructField, Object>> value : data) {
-                addValuesToBatch(value, statement, columnNames, columnTypes);
+            for(Map<String, Object> value : data) {
+                addValuesToBatch(value, statement, clickhouseColNames, clickhouseColTypes);
             }
             statement.executeBatch();
 
